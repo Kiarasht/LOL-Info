@@ -1,5 +1,6 @@
 package com.restart.lolinfo;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -7,11 +8,23 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private String TAG = ".MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +41,32 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        SharedPreferences account = getSharedPreferences("savefile", MODE_PRIVATE);
+        long summoner_id = account.getLong(getString(R.string.summoner_id), -1);
+
+        if (summoner_id == -1) {
+            getSummoner();
+            account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
+        }
+    }
+
+    private void getSummoner() {
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        String url = "https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/restart?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, response.toString());
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+
+        requestQueue.add(jsonObjectRequest);
     }
 
     @Override
