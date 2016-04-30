@@ -1,8 +1,10 @@
 package com.restart.lolinfo;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -11,12 +13,14 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,22 +29,42 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.Volley;
+import com.restart.lolinfo.adapter.CustomListAdapter;
+import com.restart.lolinfo.app.AppController;
+import com.restart.lolinfo.app.CustomVolleyRequest;
+import com.restart.lolinfo.model.Movie;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private String TAG = ".MainActivity";
+    private static final String TAG = ".MainActivity";
+
+    private static final String url = "http://api.androidhive.info/json/movies.json";
+    private ProgressDialog pDialog;
+    private List<Movie> movieList = new ArrayList<>();
+    private CustomListAdapter adapter;
     private SharedPreferences account;
+    private NetworkImageView imageView;
+    private ImageLoader imageLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -56,9 +80,13 @@ public class MainActivity extends AppCompatActivity
         account = getSharedPreferences("savefile", MODE_PRIVATE);
         long summoner_id = account.getLong(getString(R.string.summoner_id), -1);
 
-        //if (summoner_id == -1) {
+
+        if (true) {
             askSummoner();
-        //}
+            matchHistory();
+        } else {
+            matchHistory();
+        }
     }
 
     private void askSummoner() {
@@ -130,11 +158,15 @@ public class MainActivity extends AppCompatActivity
                     long summoner_level = response.getLong("summonerLevel");
                     account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
 
-                    ImageView icon_drawer = (ImageView) findViewById(R.id.imageView);
                     TextView level_drawer = (TextView) findViewById(R.id.textView);
                     TextView name_drawer = (TextView) findViewById(R.id.textView2);
+                    imageView = (NetworkImageView) findViewById(R.id.imageView);
                     level_drawer.setText("Level: " + summoner_level);
                     name_drawer.setText(name);
+                    String link = "http://ddragon.leagueoflegends.com/cdn/6.9.1/img/profileicon/" +
+                            profile_icon +
+                            ".png";
+                    loadImage(imageView, R.id.imageView, link);
 
 
                 } catch (JSONException e) {
@@ -146,35 +178,90 @@ public class MainActivity extends AppCompatActivity
             public void onErrorResponse(VolleyError error) {
                 int networkResponse = error.networkResponse.statusCode;
 
-                String reason = "Something went wrong";
+                String reason = "Something went wrong. Error: " + networkResponse;
 
-                switch (networkResponse) {
-                    case 400:
-                        reason += ", and it's my fault";
-                        break;
-                    case 401:
-                        reason += ", and it's my fault";
-                        break;
-                    case 404:
-                        reason += ". A recent input was incorrect";
-                        break;
-                    case 415:
-                        reason += ", and it's my fault";
-                        break;
-                    case 429:
-                        reason += ". I reached Riots request limit, will have to try again later";
-                        break;
-                    case 500:
-                        reason += ", and it's Riots fault. They didn't respond back";
-                        break;
-                    case 503:
-                        reason += ", and it's Riots fault. Their server is most likely down";
-                }
                 Toast.makeText(MainActivity.this, reason + ".", Toast.LENGTH_LONG).show();
             }
         });
 
         requestQueue.add(jsonObjectRequest);
+    }
+
+    private void matchHistory() {
+        ListView listView = (ListView) findViewById(R.id.list);
+        adapter = new CustomListAdapter(this, movieList);
+        listView.setAdapter(adapter);
+
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Loading...");
+        pDialog.show();
+
+        JsonArrayRequest movieReq = new JsonArrayRequest(url,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        Log.d(TAG, response.toString());
+                        hidePDialog();
+
+                        for (int i = 0; i < response.length(); i++) {
+                            try {
+
+                                JSONObject obj = response.getJSONObject(i);
+                                Movie movie = new Movie();
+                                movie.setTitle(obj.getString("title"));
+                                movie.setThumbnailUrl(obj.getString("image"));
+                                movie.setRating(((Number) obj.get("rating"))
+                                        .doubleValue());
+                                movie.setYear(obj.getInt("releaseYear"));
+
+                                JSONArray genreArry = obj.getJSONArray("genre");
+                                ArrayList<String> genre = new ArrayList<>();
+                                for (int j = 0; j < genreArry.length(); j++) {
+                                    genre.add((String) genreArry.get(j));
+                                }
+                                movie.setGenre(genre);
+
+                                movieList.add(movie);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+                        adapter.notifyDataSetChanged();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                hidePDialog();
+            }
+        });
+
+        AppController.getInstance().addToRequestQueue(movieReq);
+    }
+
+    private void loadImage(NetworkImageView imageView, int view, String link){
+        imageLoader = CustomVolleyRequest.getInstance(this.getApplicationContext())
+                .getImageLoader();
+        imageLoader.get(link, ImageLoader.getImageListener(imageView,
+                view, android.R.drawable
+                        .ic_dialog_alert));
+        imageView.setImageUrl(link, imageLoader);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        hidePDialog();
+    }
+
+    private void hidePDialog() {
+        if (pDialog != null) {
+            pDialog.dismiss();
+            pDialog = null;
+        }
     }
 
     @Override
