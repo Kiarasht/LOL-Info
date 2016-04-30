@@ -6,4 +6,18 @@
 
     <string name="action_settings">Settings</string>
     <string name="summoner_id">summoner_id</string>
+
+    <string-array name="regions">
+        <item>BR</item>
+        <item>EUNE</item>
+        <item>EUW</item>
+        <item>JP</item>
+        <item>KR</item>
+        <item>LAN</item>
+        <item>LAS</item>
+        <item>NA</item>
+        <item>OCE</item>
+        <item>RU</item>
+        <item>TR</item>
+    </string-array>
 </resources>

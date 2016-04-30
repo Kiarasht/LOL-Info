@@ -1,16 +1,23 @@
 package com.restart.lolinfo;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -19,12 +26,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private String TAG = ".MainActivity";
+    private SharedPreferences account;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,22 +51,81 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        SharedPreferences account = getSharedPreferences("savefile", MODE_PRIVATE);
+        account = getSharedPreferences("savefile", MODE_PRIVATE);
         long summoner_id = account.getLong(getString(R.string.summoner_id), -1);
 
         if (summoner_id == -1) {
-            getSummoner();
-            account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
+            askSummoner();
         }
     }
 
-    private void getSummoner() {
+    private void askSummoner() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog.setTitle("New User");
+        alertDialog.setMessage("Enter summoner name and region");
+        alertDialog.setIcon(R.drawable.ic_menu_camera);
+        alertDialog.setCancelable(false);
+
+        final EditText input = new EditText(MainActivity.this);
+        input.setTextColor(Color.BLACK);
+        input.setPadding(80, 60, 40, 20);
+
+        final Spinner spinner = new Spinner(MainActivity.this);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(MainActivity.this,
+                R.array.regions, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setPadding(55, 55, 40, 20);
+
+        LinearLayout layout = new LinearLayout(MainActivity.this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.addView(input);
+        layout.addView(spinner);
+        alertDialog.setView(layout);
+
+        alertDialog.setPositiveButton("Done",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String name = input.getText().toString();
+                        if (name.compareTo("") == 0) {
+                            getSummoner(name, spinner.getSelectedItem().toString());
+                            Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Summoner name is required", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+        alertDialog.setNegativeButton("NOT NOW",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
+                                Toast.LENGTH_SHORT).show();
+                        dialog.cancel();
+                    }
+                });
+
+        alertDialog.show();
+    }
+
+    private void getSummoner(String name, String region) {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
-        String url = "https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/restart?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        String url = "https://na.api.pvp.net/api/lol/" +
+                region +
+                "/v1.4/summoner/by-name/" +
+                name +
+                "?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.d(TAG, response.toString());
+                try {
+                    Long summoner_id = response.getLong("name");
+                    account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }, new Response.ErrorListener() {
             @Override
@@ -68,7 +136,7 @@ public class MainActivity extends AppCompatActivity
 
         requestQueue.add(jsonObjectRequest);
     }
-
+    
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
