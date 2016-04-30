@@ -15,8 +15,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -54,13 +56,13 @@ public class MainActivity extends AppCompatActivity
         account = getSharedPreferences("savefile", MODE_PRIVATE);
         long summoner_id = account.getLong(getString(R.string.summoner_id), -1);
 
-        if (summoner_id == -1) {
+        //if (summoner_id == -1) {
             askSummoner();
-        }
+        //}
     }
 
     private void askSummoner() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        final AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setTitle("New User");
         alertDialog.setMessage("Enter summoner name and region");
         alertDialog.setIcon(R.drawable.ic_menu_camera);
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         String name = input.getText().toString();
-                        if (name.compareTo("") == 0) {
+                        if (name.compareTo("") != 0) {
                             getSummoner(name, spinner.getSelectedItem().toString());
                             Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
                                     Toast.LENGTH_SHORT).show();
@@ -100,7 +102,7 @@ public class MainActivity extends AppCompatActivity
         alertDialog.setNegativeButton("NOT NOW",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
+                        Toast.makeText(MainActivity.this, "You can always set your summoner by going to settings",
                                 Toast.LENGTH_SHORT).show();
                         dialog.cancel();
                     }
@@ -109,7 +111,7 @@ public class MainActivity extends AppCompatActivity
         alertDialog.show();
     }
 
-    private void getSummoner(String name, String region) {
+    private void getSummoner(final String name, final String region) {
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         String url = "https://na.api.pvp.net/api/lol/" +
                 region +
@@ -121,8 +123,20 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    Long summoner_id = response.getLong("name");
+                    response = response.getJSONObject(name.toLowerCase());
+                    String name = response.getString("name");
+                    long summoner_id = response.getLong("id");
+                    int profile_icon = response.getInt("profileIconId");
+                    long summoner_level = response.getLong("summonerLevel");
                     account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
+
+                    ImageView icon_drawer = (ImageView) findViewById(R.id.imageView);
+                    TextView level_drawer = (TextView) findViewById(R.id.textView);
+                    TextView name_drawer = (TextView) findViewById(R.id.textView2);
+                    level_drawer.setText("Level: " + summoner_level);
+                    name_drawer.setText(name);
+
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -130,13 +144,39 @@ public class MainActivity extends AppCompatActivity
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                int networkResponse = error.networkResponse.statusCode;
 
+                String reason = "Something went wrong";
+
+                switch (networkResponse) {
+                    case 400:
+                        reason += ", and it's my fault";
+                        break;
+                    case 401:
+                        reason += ", and it's my fault";
+                        break;
+                    case 404:
+                        reason += ". A recent input was incorrect";
+                        break;
+                    case 415:
+                        reason += ", and it's my fault";
+                        break;
+                    case 429:
+                        reason += ". I reached Riots request limit, will have to try again later";
+                        break;
+                    case 500:
+                        reason += ", and it's Riots fault. They didn't respond back";
+                        break;
+                    case 503:
+                        reason += ", and it's Riots fault. Their server is most likely down";
+                }
+                Toast.makeText(MainActivity.this, reason + ".", Toast.LENGTH_LONG).show();
             }
         });
 
         requestQueue.add(jsonObjectRequest);
     }
-    
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
