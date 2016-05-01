@@ -4,7 +4,6 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -18,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -158,15 +156,15 @@ public class MainActivity extends AppCompatActivity
                     long summoner_level = response.getLong("summonerLevel");
                     account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
 
-                    TextView level_drawer = (TextView) findViewById(R.id.textView);
-                    TextView name_drawer = (TextView) findViewById(R.id.textView2);
-                    imageView = (NetworkImageView) findViewById(R.id.imageView);
+                    TextView level_drawer = (TextView) findViewById(R.id.level);
+                    TextView name_drawer = (TextView) findViewById(R.id.name);
+                    imageView = (NetworkImageView) findViewById(R.id.icon);
                     level_drawer.setText("Level: " + summoner_level);
                     name_drawer.setText(name);
                     String link = "http://ddragon.leagueoflegends.com/cdn/6.9.1/img/profileicon/" +
                             profile_icon +
                             ".png";
-                    loadImage(imageView, R.id.imageView, link);
+                    loadImage(imageView, R.id.icon, link);
 
 
                 } catch (JSONException e) {
@@ -205,7 +203,6 @@ public class MainActivity extends AppCompatActivity
 
                         for (int i = 0; i < response.length(); i++) {
                             try {
-
                                 JSONObject obj = response.getJSONObject(i);
                                 Movie movie = new Movie();
                                 movie.setTitle(obj.getString("title"));
