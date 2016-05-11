@@ -12,6 +12,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.restart.lolinfo.R;
 import com.restart.lolinfo.app.AppController;
+import com.restart.lolinfo.model.Convert;
 import com.restart.lolinfo.model.Match;
 
 import java.util.List;
@@ -68,7 +69,7 @@ public class CustomListAdapter extends BaseAdapter {
         champion.setText(rating_string);
         lane_role.setText(m.getLane_role());
 
-        time.setText(String.valueOf(m.getTime()));
+        time.setText(Convert.getDate(m.getTime()));
 
         return convertView;
     }

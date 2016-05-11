@@ -15,6 +15,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -27,7 +29,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
@@ -35,6 +36,7 @@ import com.android.volley.toolbox.Volley;
 import com.restart.lolinfo.adapter.CustomListAdapter;
 import com.restart.lolinfo.app.AppController;
 import com.restart.lolinfo.app.CustomVolleyRequest;
+import com.restart.lolinfo.model.Convert;
 import com.restart.lolinfo.model.Match;
 
 import org.json.JSONArray;
@@ -49,7 +51,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = ".MainActivity";
 
-    private static final String url = "https://na.api.pvp.net/api/lol/na/v2.2/matchlist/by-summoner/25797403?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
+    private static final String url = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/25797403/recent?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
     private ProgressDialog pDialog;
     private List<Match> matchList = new ArrayList<>();
     private CustomListAdapter adapter;
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity
         long summoner_id = account.getLong(getString(R.string.summoner_id), -1);
 
 
-        if (true) {
+        if (summoner_id == -1) {
             askSummoner();
             matchHistory();
         } else {
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity
                             Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(MainActivity.this, "Summoner name is required", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "Nothing was entered. Skipping...", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -157,13 +159,13 @@ public class MainActivity extends AppCompatActivity
                     TextView level_drawer = (TextView) findViewById(R.id.level);
                     TextView name_drawer = (TextView) findViewById(R.id.name);
                     imageView = (NetworkImageView) findViewById(R.id.icon);
-                    level_drawer.setText("Level: " + summoner_level);
+                    String level = "Level: " + summoner_level;
+                    level_drawer.setText(level);
                     name_drawer.setText(name);
                     String link = "http://ddragon.leagueoflegends.com/cdn/6.9.1/img/profileicon/" +
                             profile_icon +
                             ".png";
                     loadImage(imageView, R.id.icon, link);
-
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -188,6 +190,12 @@ public class MainActivity extends AppCompatActivity
         ListView listView = (ListView) findViewById(R.id.list);
         adapter = new CustomListAdapter(this, matchList);
         listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getApplicationContext(),String.valueOf(position),Toast.LENGTH_SHORT).show();
+            }
+        });
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Loading...");
@@ -201,21 +209,22 @@ public class MainActivity extends AppCompatActivity
                         hidePDialog();
 
                         try {
-                            JSONArray matches = response.getJSONArray("matches");
+                            JSONArray games = response.getJSONArray("games");
 
-                            for (int i = 0; i < /*response.length()*/10; i++) {
-                                JSONObject obj = matches.getJSONObject(i);
+                            for (int i = 0; i < games.length(); i++) {
+                                JSONObject obj = games.getJSONObject(i);
                                 Match match = new Match();
-                                match.setQueue(obj.getString("queue"));
+                                match.setQueue(Convert.getGame(obj.getString("subType")));
                                 // TODO fix the url to match champion icon
                                 match.setThumbnailUrl("http://ddragon.leagueoflegends.com/cdn/6.9.1/img/profileicon/539.png");
-                                match.setChampion(String.valueOf(obj.getInt("champion")));
-                                match.setTime(obj.getLong("timestamp"));
-                                match.setLane_role(obj.getString("lane") + obj.getString("role"));
+                                match.setChampion(String.valueOf(obj.getInt("championId")));
+                                match.setTime(obj.getLong("createDate"));
+                                match.setLane_role("asd");
 
                                 matchList.add(match);
                             }
-                        } catch (JSONException e) {
+
+                        } catch (Exception e ) {
                             e.printStackTrace();
                         }
 
@@ -225,7 +234,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onErrorResponse(VolleyError e) {
                 e.printStackTrace();
-                VolleyLog.d(TAG, "Error: " + e.getMessage());
+                int networkResponse = e.networkResponse.statusCode;
+
+                String reason = "Something went wrong. Error: " + networkResponse;
+
+                Toast.makeText(MainActivity.this, reason + ".", Toast.LENGTH_LONG).show();
                 hidePDialog();
             }
         });
