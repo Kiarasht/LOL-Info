@@ -29,14 +29,13 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.Volley;
 import com.restart.lolinfo.adapter.CustomListAdapter;
 import com.restart.lolinfo.app.AppController;
 import com.restart.lolinfo.app.CustomVolleyRequest;
-import com.restart.lolinfo.model.Movie;
+import com.restart.lolinfo.model.Match;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,13 +49,12 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = ".MainActivity";
 
-    private static final String url = "http://api.androidhive.info/json/movies.json";
+    private static final String url = "https://na.api.pvp.net/api/lol/na/v2.2/matchlist/by-summoner/25797403?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
     private ProgressDialog pDialog;
-    private List<Movie> movieList = new ArrayList<>();
+    private List<Match> matchList = new ArrayList<>();
     private CustomListAdapter adapter;
     private SharedPreferences account;
     private NetworkImageView imageView;
-    private ImageLoader imageLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,8 +171,9 @@ public class MainActivity extends AppCompatActivity
             }
         }, new Response.ErrorListener() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                int networkResponse = error.networkResponse.statusCode;
+            public void onErrorResponse(VolleyError e) {
+                e.printStackTrace();
+                int networkResponse = e.networkResponse.statusCode;
 
                 String reason = "Something went wrong. Error: " + networkResponse;
 
@@ -187,60 +186,55 @@ public class MainActivity extends AppCompatActivity
 
     private void matchHistory() {
         ListView listView = (ListView) findViewById(R.id.list);
-        adapter = new CustomListAdapter(this, movieList);
+        adapter = new CustomListAdapter(this, matchList);
         listView.setAdapter(adapter);
 
         pDialog = new ProgressDialog(this);
         pDialog.setMessage("Loading...");
         pDialog.show();
 
-        JsonArrayRequest movieReq = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
+        JsonObjectRequest matchReq = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(JSONArray response) {
+                    public void onResponse(JSONObject response) {
                         Log.d(TAG, response.toString());
                         hidePDialog();
 
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-                                JSONObject obj = response.getJSONObject(i);
-                                Movie movie = new Movie();
-                                movie.setTitle(obj.getString("title"));
-                                movie.setThumbnailUrl(obj.getString("image"));
-                                movie.setRating(((Number) obj.get("rating"))
-                                        .doubleValue());
-                                movie.setYear(obj.getInt("releaseYear"));
+                        try {
+                            JSONArray matches = response.getJSONArray("matches");
 
-                                JSONArray genreArry = obj.getJSONArray("genre");
-                                ArrayList<String> genre = new ArrayList<>();
-                                for (int j = 0; j < genreArry.length(); j++) {
-                                    genre.add((String) genreArry.get(j));
-                                }
-                                movie.setGenre(genre);
+                            for (int i = 0; i < /*response.length()*/10; i++) {
+                                JSONObject obj = matches.getJSONObject(i);
+                                Match match = new Match();
+                                match.setQueue(obj.getString("queue"));
+                                // TODO fix the url to match champion icon
+                                match.setThumbnailUrl("http://ddragon.leagueoflegends.com/cdn/6.9.1/img/profileicon/539.png");
+                                match.setChampion(String.valueOf(obj.getInt("champion")));
+                                match.setTime(obj.getLong("timestamp"));
+                                match.setLane_role(obj.getString("lane") + obj.getString("role"));
 
-                                movieList.add(movie);
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                                matchList.add(match);
                             }
-
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
 
                         adapter.notifyDataSetChanged();
                     }
                 }, new Response.ErrorListener() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.d(TAG, "Error: " + error.getMessage());
+            public void onErrorResponse(VolleyError e) {
+                e.printStackTrace();
+                VolleyLog.d(TAG, "Error: " + e.getMessage());
                 hidePDialog();
             }
         });
 
-        AppController.getInstance().addToRequestQueue(movieReq);
+        AppController.getInstance().addToRequestQueue(matchReq);
     }
 
     private void loadImage(NetworkImageView imageView, int view, String link){
-        imageLoader = CustomVolleyRequest.getInstance(this.getApplicationContext())
+        ImageLoader imageLoader = CustomVolleyRequest.getInstance(this.getApplicationContext())
                 .getImageLoader();
         imageLoader.get(link, ImageLoader.getImageListener(imageView,
                 view, android.R.drawable

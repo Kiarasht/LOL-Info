@@ -13,9 +13,9 @@
         android:layout_alignParentLeft="true"
         android:layout_marginRight="8dp" />
 
-    <!-- Movie Title -->
+    <!-- Match Type -->
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/queue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/thumbnail"
@@ -23,30 +23,30 @@
         android:textSize="@dimen/title"
         android:textStyle="bold" />
 
-    <!-- Rating -->
+    <!-- Champion name -->
     <TextView
-        android:id="@+id/rating"
+        android:id="@+id/champion"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title"
+        android:layout_below="@id/queue"
         android:layout_marginTop="1dip"
         android:layout_toRightOf="@+id/thumbnail"
         android:textSize="@dimen/rating" />
 
-    <!-- Genre -->
+    <!-- Role & Lane -->
     <TextView
-        android:id="@+id/genre"
+        android:id="@+id/lane_role"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/rating"
+        android:layout_below="@id/champion"
         android:layout_marginTop="5dp"
         android:layout_toRightOf="@+id/thumbnail"
         android:textColor="@color/genre"
         android:textSize="@dimen/genre" />
 
-    <!-- Release Year -->
+    <!-- Time -->
     <TextView
-        android:id="@+id/releaseYear"
+        android:id="@+id/time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

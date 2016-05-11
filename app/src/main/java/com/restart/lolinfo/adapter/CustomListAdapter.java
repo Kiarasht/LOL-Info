@@ -12,29 +12,29 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.restart.lolinfo.R;
 import com.restart.lolinfo.app.AppController;
-import com.restart.lolinfo.model.Movie;
+import com.restart.lolinfo.model.Match;
 
 import java.util.List;
 
 public class CustomListAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;
-    private List<Movie> movieItems;
+    private List<Match> matchItems;
     ImageLoader imageLoader = AppController.getInstance().getImageLoader();
 
-    public CustomListAdapter(Activity activity, List<Movie> movieItems) {
+    public CustomListAdapter(Activity activity, List<Match> movieItems) {
         this.activity = activity;
-        this.movieItems = movieItems;
+        this.matchItems = movieItems;
     }
 
     @Override
     public int getCount() {
-        return movieItems.size();
+        return matchItems.size();
     }
 
     @Override
     public Object getItem(int location) {
-        return movieItems.get(location);
+        return matchItems.get(location);
     }
 
     @Override
@@ -55,26 +55,20 @@ public class CustomListAdapter extends BaseAdapter {
             imageLoader = AppController.getInstance().getImageLoader();
         NetworkImageView thumbNail = (NetworkImageView) convertView
                 .findViewById(R.id.thumbnail);
-        TextView title = (TextView) convertView.findViewById(R.id.title);
-        TextView rating = (TextView) convertView.findViewById(R.id.rating);
-        TextView genre = (TextView) convertView.findViewById(R.id.genre);
-        TextView year = (TextView) convertView.findViewById(R.id.releaseYear);
+        TextView queue = (TextView) convertView.findViewById(R.id.queue);
+        TextView champion = (TextView) convertView.findViewById(R.id.champion);
+        TextView lane_role = (TextView) convertView.findViewById(R.id.lane_role);
+        TextView time = (TextView) convertView.findViewById(R.id.time);
 
-        Movie m = movieItems.get(position);
+        Match m = matchItems.get(position);
 
         thumbNail.setImageUrl(m.getThumbnailUrl(), imageLoader);
-        title.setText(m.getTitle());
-        rating.setText("Rating: " + String.valueOf(m.getRating()));
+        queue.setText(m.getQueue());
+        String rating_string = "Rating: " + String.valueOf(m.getChampion());
+        champion.setText(rating_string);
+        lane_role.setText(m.getLane_role());
 
-        String genreStr = "";
-        for (String str : m.getGenre()) {
-            genreStr += str + ", ";
-        }
-        genreStr = genreStr.length() > 0 ? genreStr.substring(0,
-                genreStr.length() - 2) : genreStr;
-        genre.setText(genreStr);
-
-        year.setText(String.valueOf(m.getYear()));
+        time.setText(String.valueOf(m.getTime()));
 
         return convertView;
     }
