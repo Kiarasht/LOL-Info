@@ -4,6 +4,7 @@ package com.restart.lolinfo.model;
 public class Match {
     private String queue, thumbnailUrl, champion, lane_role;
     private long time;
+    private boolean win;
 
     public Match() {
     }
@@ -56,4 +57,11 @@ public class Match {
         this.lane_role = lane_role;
     }
 
+    public boolean getWin() {
+        return win;
+    }
+
+    public void setWin(boolean win) {
+        this.win = win;
+    }
 }

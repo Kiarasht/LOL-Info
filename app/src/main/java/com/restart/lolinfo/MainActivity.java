@@ -51,12 +51,12 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = ".MainActivity";
 
-    private static final String url = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/25797403/recent?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
     private ProgressDialog pDialog;
     private List<Match> matchList = new ArrayList<>();
     private CustomListAdapter adapter;
     private SharedPreferences account;
     private NetworkImageView imageView;
+    private long summoner_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +76,10 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         account = getSharedPreferences("savefile", MODE_PRIVATE);
-        long summoner_id = account.getLong(getString(R.string.summoner_id), -1);
+        summoner_id = account.getLong(getString(R.string.summoner_id), -1);
+
+        // TODO This is default, remove it after
+        summoner_id = 25797403;
 
 
         if (summoner_id == -1) {
@@ -201,6 +204,9 @@ public class MainActivity extends AppCompatActivity
         pDialog.setMessage("Loading...");
         pDialog.show();
 
+        String url = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/" +
+                summoner_id +
+                "/recent?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
         JsonObjectRequest matchReq = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -213,13 +219,13 @@ public class MainActivity extends AppCompatActivity
 
                             for (int i = 0; i < games.length(); i++) {
                                 JSONObject obj = games.getJSONObject(i);
+                                JSONObject stats = obj.getJSONObject("stats");
+
                                 Match match = new Match();
                                 match.setQueue(Convert.getGame(obj.getString("subType")));
-                                // TODO fix the url to match champion icon
-                                match.setThumbnailUrl("http://ddragon.leagueoflegends.com/cdn/6.9.1/img/profileicon/539.png");
-                                match.setChampion(String.valueOf(obj.getInt("championId")));
+                                getChampion(obj.getInt("championId"), match);
                                 match.setTime(obj.getLong("createDate"));
-                                match.setLane_role("asd");
+                                match.setWin(stats.getBoolean("win"));
 
                                 matchList.add(match);
                             }
@@ -240,6 +246,45 @@ public class MainActivity extends AppCompatActivity
 
                 Toast.makeText(MainActivity.this, reason + ".", Toast.LENGTH_LONG).show();
                 hidePDialog();
+            }
+        });
+
+        AppController.getInstance().addToRequestQueue(matchReq);
+    }
+
+    private void getChampion(int champion_id, final Match match) {
+        String url = "https://global.api.pvp.net/api/lol/static-data/na/v1.2/champion/" +
+                champion_id +
+                "?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
+        JsonObjectRequest matchReq = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG, response.toString());
+
+                        try {
+                            match.setChampion(response.getString("name"));
+                            String title = response.getString("title").substring(0,1).toUpperCase()
+                                    + response.getString("title").substring(1);
+                            match.setLane_role(title);
+                            String key = response.getString("key");
+                            match.setThumbnailUrl("http://ddragon.leagueoflegends.com/cdn/6.9.1/img/champion/" +
+                                    key +
+                                    ".png");
+                            adapter.notifyDataSetChanged();
+                        } catch (Exception e ) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError e) {
+                e.printStackTrace();
+                int networkResponse = e.networkResponse.statusCode;
+
+                String reason = "Something went wrong. Error: " + networkResponse;
+
+                Toast.makeText(MainActivity.this, reason + ".", Toast.LENGTH_LONG).show();
             }
         });
 

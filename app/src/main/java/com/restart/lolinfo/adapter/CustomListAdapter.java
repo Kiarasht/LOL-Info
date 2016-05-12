@@ -45,7 +45,6 @@ public class CustomListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         if (inflater == null)
             inflater = (LayoutInflater) activity
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -63,12 +62,16 @@ public class CustomListAdapter extends BaseAdapter {
 
         Match m = matchItems.get(position);
 
+        if (m.getWin()) {
+            convertView.setBackgroundResource(R.drawable.list_row_selector);
+        } else {
+            convertView.setBackgroundResource(R.drawable.list_row_selector_lose);
+        }
+
         thumbNail.setImageUrl(m.getThumbnailUrl(), imageLoader);
         queue.setText(m.getQueue());
-        String rating_string = "Rating: " + String.valueOf(m.getChampion());
-        champion.setText(rating_string);
+        champion.setText(m.getChampion());
         lane_role.setText(m.getLane_role());
-
         time.setText(Convert.getDate(m.getTime()));
 
         return convertView;

@@ -2,6 +2,7 @@ package com.restart.lolinfo.model;
 
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class Convert {
     public static String getLane(String lane) throws Exception {
@@ -131,22 +132,22 @@ public class Convert {
     }
 
     public static String getDate(long past) {
-        long current = new Date().getTime();
+        Date old = new Date(past);
+        Date current = new Date();
+        long difference = current.getTime() - old.getTime();
 
-        long difference = Math.abs(past - current);
-        long difference_seconds = (difference / 1000);
-        long difference_minutes = (difference / (60 * difference_seconds));
-        long difference_hours = (difference / (60 * difference_minutes));
-        long difference_days = (difference / (24 * difference_hours));
+        int difference_minutes = (int) Math.ceil(TimeUnit.MILLISECONDS.toMinutes(difference));
+        int difference_hours = (int) Math.ceil(TimeUnit.MILLISECONDS.toHours(difference));
+        int difference_days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(difference)) + 1;
 
         if (difference_minutes < 1) {
-            return String.valueOf((int) difference_seconds);
-        } else if (difference_hours < 1) {
-            return String.valueOf((int) difference_minutes);
+            return "Just Now";
+        } else if (difference_hours < 24) {
+            return String.valueOf(difference_minutes) + " minutes ago";
         } else if (difference_days < 1) {
-            return String.valueOf((int) difference_hours);
+            return String.valueOf(difference_hours) + " hours ago";
         } else {
-            return String.valueOf((int) difference_days);
+            return String.valueOf(difference_days) + " days ago";
         }
     }
 
