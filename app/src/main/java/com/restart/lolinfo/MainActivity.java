@@ -1,7 +1,6 @@
 package com.restart.lolinfo;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -56,8 +55,9 @@ public class MainActivity extends AppCompatActivity
     private CustomListAdapter adapter;
     private SharedPreferences account;
     private NetworkImageView imageView;
-    private long summoner_id;
+    private String summoner_name;
     private String summoner_region;
+    private long summoner_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,11 +79,12 @@ public class MainActivity extends AppCompatActivity
         account = getSharedPreferences("savefile", MODE_PRIVATE);
         summoner_id = account.getLong(getString(R.string.summoner_id), -1);
         summoner_region = account.getString(getString(R.string.summoner_region), "NA");
+        summoner_name = account.getString(getString(R.string.summoner_name), "-1");
 
         if (summoner_id == -1) {
             askSummoner();
         } else {
-            matchHistory(summoner_id, summoner_region);
+            getSummoner(summoner_name, summoner_region);
         }
     }
 
@@ -154,8 +155,10 @@ public class MainActivity extends AppCompatActivity
                     Log.e(TAG, id + "");
                     int profile_icon = response.getInt("profileIconId");
                     long summoner_level = response.getLong("summonerLevel");
+                    account.edit().putString(getString(R.string.summoner_name), name).apply();
                     account.edit().putLong(getString(R.string.summoner_id), id).apply();
-                    account.edit().putString(getString(R.string.summoner_region),region).apply();
+                    account.edit().putString(getString(R.string.summoner_region), region).apply();
+                    summoner_name = name;
                     summoner_id = id;
                     summoner_region = region;
 
@@ -169,7 +172,7 @@ public class MainActivity extends AppCompatActivity
                             profile_icon +
                             ".png";
                     loadImage(imageView, R.id.icon, link);
-                    matchHistory(id, region);
+                    matchHistory(id, region, false);
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -190,14 +193,18 @@ public class MainActivity extends AppCompatActivity
         requestQueue.add(jsonObjectRequest);
     }
 
-    private void matchHistory(long id, String region) {
+    private void matchHistory(long id, String region, boolean isRefresh) {
         ListView listView = (ListView) findViewById(R.id.list);
+        if (isRefresh) {
+            matchList = new ArrayList<>();
+        }
+
         adapter = new CustomListAdapter(this, matchList);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getApplicationContext(),String.valueOf(position),Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), String.valueOf(position), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -233,7 +240,7 @@ public class MainActivity extends AppCompatActivity
                                 matchList.add(match);
                             }
 
-                        } catch (Exception e ) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
 
@@ -267,7 +274,7 @@ public class MainActivity extends AppCompatActivity
 
                         try {
                             match.setChampion(response.getString("name"));
-                            String title = response.getString("title").substring(0,1).toUpperCase()
+                            String title = response.getString("title").substring(0, 1).toUpperCase()
                                     + response.getString("title").substring(1);
                             match.setLane_role(title);
                             String key = response.getString("key");
@@ -275,7 +282,7 @@ public class MainActivity extends AppCompatActivity
                                     key +
                                     ".png");
                             adapter.notifyDataSetChanged();
-                        } catch (Exception e ) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -294,7 +301,7 @@ public class MainActivity extends AppCompatActivity
         AppController.getInstance().addToRequestQueue(matchReq);
     }
 
-    private void loadImage(NetworkImageView imageView, int view, String link){
+    private void loadImage(NetworkImageView imageView, int view, String link) {
         ImageLoader imageLoader = CustomVolleyRequest.getInstance(this.getApplicationContext())
                 .getImageLoader();
         imageLoader.get(link, ImageLoader.getImageListener(imageView,
@@ -343,6 +350,8 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.action_refresh) {
+            matchHistory(summoner_id, summoner_region, true);
         }
 
         return super.onOptionsItemSelected(item);
