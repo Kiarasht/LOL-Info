@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences account;
     private NetworkImageView imageView;
     private long summoner_id;
+    private String summoner_region;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,11 +78,12 @@ public class MainActivity extends AppCompatActivity
 
         account = getSharedPreferences("savefile", MODE_PRIVATE);
         summoner_id = account.getLong(getString(R.string.summoner_id), -1);
+        summoner_region = account.getString(getString(R.string.summoner_region), "NA");
 
         if (summoner_id == -1) {
             askSummoner();
         } else {
-            matchHistory();
+            matchHistory(summoner_id, summoner_region);
         }
     }
 
@@ -89,50 +91,49 @@ public class MainActivity extends AppCompatActivity
         final AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setTitle("New User");
         alertDialog.setMessage("Enter summoner name and region");
-        alertDialog.setIcon(R.drawable.ic_menu_camera);
+        alertDialog.setIcon(R.drawable.ic_account_circle);
         alertDialog.setCancelable(false);
+        alertDialog.setPositiveButton("Ok", null);
 
         final EditText input = new EditText(MainActivity.this);
         input.setTextColor(Color.BLACK);
-        input.setPadding(80, 60, 40, 20);
+        input.setPadding(20, 0, 30, 30);
 
         final Spinner spinner = new Spinner(MainActivity.this);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(MainActivity.this,
                 R.array.regions, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        spinner.setPadding(55, 55, 40, 20);
+        spinner.setPadding(0, 60, 0, 60);
 
         LinearLayout layout = new LinearLayout(MainActivity.this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.addView(input);
-        layout.addView(spinner);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(80, 0, 170, 0);
+
+        layout.addView(input, params);
+        layout.addView(spinner, params);
         alertDialog.setView(layout);
 
-        alertDialog.setPositiveButton("Done",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        String name = input.getText().toString();
-                        if (name.compareTo("") != 0) {
-                            getSummoner(name, spinner.getSelectedItem().toString());
-                            Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Nothing was entered. Skipping...", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+        final AlertDialog final_dialog = alertDialog.create();
+        final_dialog.show();
 
-        alertDialog.setNegativeButton("NOT NOW",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(MainActivity.this, "You can always set your summoner by going to settings",
-                                Toast.LENGTH_SHORT).show();
-                        dialog.cancel();
-                    }
-                });
-
-        alertDialog.show();
+        final_dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = input.getText().toString();
+                if (name.compareTo("") != 0) {
+                    getSummoner(name, spinner.getSelectedItem().toString());
+                    Toast.makeText(MainActivity.this, "You can always change your summoner by going to settings",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Nothing was entered", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final_dialog.dismiss();
+            }
+        });
     }
 
     private void getSummoner(final String name, final String region) {
@@ -154,7 +155,9 @@ public class MainActivity extends AppCompatActivity
                     int profile_icon = response.getInt("profileIconId");
                     long summoner_level = response.getLong("summonerLevel");
                     account.edit().putLong(getString(R.string.summoner_id), id).apply();
+                    account.edit().putString(getString(R.string.summoner_region),region).apply();
                     summoner_id = id;
+                    summoner_region = region;
 
                     TextView level_drawer = (TextView) findViewById(R.id.level);
                     TextView name_drawer = (TextView) findViewById(R.id.name);
@@ -166,7 +169,7 @@ public class MainActivity extends AppCompatActivity
                             profile_icon +
                             ".png";
                     loadImage(imageView, R.id.icon, link);
-                    matchHistory();
+                    matchHistory(id, region);
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -187,7 +190,7 @@ public class MainActivity extends AppCompatActivity
         requestQueue.add(jsonObjectRequest);
     }
 
-    private void matchHistory() {
+    private void matchHistory(long id, String region) {
         ListView listView = (ListView) findViewById(R.id.list);
         adapter = new CustomListAdapter(this, matchList);
         listView.setAdapter(adapter);
@@ -202,7 +205,9 @@ public class MainActivity extends AppCompatActivity
         pDialog.setMessage("Loading...");
         pDialog.show();
 
-        String url = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/" +
+        String url = "https://na.api.pvp.net/api/lol/" +
+                region +
+                "/v1.3/game/by-summoner/" +
                 summoner_id +
                 "/recent?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
         JsonObjectRequest matchReq = new JsonObjectRequest(Request.Method.GET, url, null,

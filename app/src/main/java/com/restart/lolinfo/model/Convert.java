@@ -136,9 +136,10 @@ public class Convert {
         Date current = new Date();
         long difference = current.getTime() - old.getTime();
 
-        int difference_minutes = (int) Math.ceil(TimeUnit.MILLISECONDS.toMinutes(difference));
-        int difference_hours = (int) Math.ceil(TimeUnit.MILLISECONDS.toHours(difference));
-        int difference_days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(difference));
+        int difference_minutes = (int) TimeUnit.MILLISECONDS.toMinutes(difference);
+        int difference_hours = (int) TimeUnit.MILLISECONDS.toHours(difference);
+        int difference_days = (int) TimeUnit.MILLISECONDS.toDays(difference);
+        int difference_months = difference_days/30;
 
         if (difference_minutes <= 1) {
             return "Just Now";
@@ -146,8 +147,10 @@ public class Convert {
             return String.valueOf(difference_minutes) + " minutes ago";
         } else if (difference_hours < 24) {
             return String.valueOf(difference_hours) + " hours ago";
-        } else {
+        } else if (difference_days < 30) {
             return String.valueOf(difference_days) + " days ago";
+        } else {
+            return String.valueOf(difference_months) + " months ago";
         }
     }
 

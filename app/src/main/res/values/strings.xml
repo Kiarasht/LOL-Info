@@ -6,6 +6,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="summoner_id">summoner_id</string>
+    <string name="summoner_region">summoner_region</string>
 
     <string-array name="regions">
         <item>BR</item>
