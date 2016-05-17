@@ -78,13 +78,8 @@ public class MainActivity extends AppCompatActivity
         account = getSharedPreferences("savefile", MODE_PRIVATE);
         summoner_id = account.getLong(getString(R.string.summoner_id), -1);
 
-        // TODO This is default, remove it after
-        summoner_id = 25797403;
-
-
         if (summoner_id == -1) {
             askSummoner();
-            matchHistory();
         } else {
             matchHistory();
         }
@@ -154,10 +149,12 @@ public class MainActivity extends AppCompatActivity
                 try {
                     response = response.getJSONObject(name.toLowerCase());
                     String name = response.getString("name");
-                    long summoner_id = response.getLong("id");
+                    long id = response.getLong("id");
+                    Log.e(TAG, id + "");
                     int profile_icon = response.getInt("profileIconId");
                     long summoner_level = response.getLong("summonerLevel");
-                    account.edit().putLong(getString(R.string.summoner_id), summoner_id).apply();
+                    account.edit().putLong(getString(R.string.summoner_id), id).apply();
+                    summoner_id = id;
 
                     TextView level_drawer = (TextView) findViewById(R.id.level);
                     TextView name_drawer = (TextView) findViewById(R.id.name);
@@ -169,6 +166,7 @@ public class MainActivity extends AppCompatActivity
                             profile_icon +
                             ".png";
                     loadImage(imageView, R.id.icon, link);
+                    matchHistory();
 
                 } catch (JSONException e) {
                     e.printStackTrace();

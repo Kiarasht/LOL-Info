@@ -138,13 +138,13 @@ public class Convert {
 
         int difference_minutes = (int) Math.ceil(TimeUnit.MILLISECONDS.toMinutes(difference));
         int difference_hours = (int) Math.ceil(TimeUnit.MILLISECONDS.toHours(difference));
-        int difference_days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(difference)) + 1;
+        int difference_days = (int) Math.ceil(TimeUnit.MILLISECONDS.toDays(difference));
 
-        if (difference_minutes < 1) {
+        if (difference_minutes <= 1) {
             return "Just Now";
-        } else if (difference_hours < 24) {
+        } else if (difference_minutes < 60) {
             return String.valueOf(difference_minutes) + " minutes ago";
-        } else if (difference_days < 1) {
+        } else if (difference_hours < 24) {
             return String.valueOf(difference_hours) + " hours ago";
         } else {
             return String.valueOf(difference_days) + " days ago";
