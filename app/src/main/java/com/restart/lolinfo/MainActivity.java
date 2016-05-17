@@ -34,6 +34,7 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.Volley;
 import com.restart.lolinfo.adapter.CustomListAdapter;
 import com.restart.lolinfo.app.AppController;
+import com.restart.lolinfo.app.CircleImageView;
 import com.restart.lolinfo.app.CustomVolleyRequest;
 import com.restart.lolinfo.model.Convert;
 import com.restart.lolinfo.model.Match;
@@ -164,7 +165,8 @@ public class MainActivity extends AppCompatActivity
 
                     TextView level_drawer = (TextView) findViewById(R.id.level);
                     TextView name_drawer = (TextView) findViewById(R.id.name);
-                    imageView = (NetworkImageView) findViewById(R.id.icon);
+                    imageView = (CircleImageView) findViewById(R.id.icon);
+
                     String level = "Level: " + summoner_level;
                     level_drawer.setText(level);
                     name_drawer.setText(name);

@@ -11,5 +11,5 @@
         android:icon="@drawable/ic_autorenew"
         android:orderInCategory="99"
         android:title="@string/action_refresh"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 </menu>

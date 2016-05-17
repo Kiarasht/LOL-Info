@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/list_row_selector"
-    android:padding="4dp" >
+    android:padding="4dp">
 
     <!-- Thumbnail Image -->
     <com.android.volley.toolbox.NetworkImageView
