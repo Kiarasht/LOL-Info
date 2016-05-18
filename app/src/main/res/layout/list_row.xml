@@ -23,7 +23,7 @@
         android:textSize="@dimen/title"
         android:textStyle="bold" />
 
-    <!-- Champion name -->
+    <!-- Champion_Desc name -->
     <TextView
         android:id="@+id/champion"
         android:layout_width="fill_parent"

@@ -9,6 +9,9 @@
     <string name="summoner_region">summoner_region</string>
     <string name="action_refresh">Refresh</string>
     <string name="summoner_name">summoner_name</string>
+    <string name="user_level">User_level</string>
+    <string name="user_name">User_name</string>
+    <string name="Champ_Desc">Champion Description</string>
 
     <string-array name="regions">
         <item>BR</item>

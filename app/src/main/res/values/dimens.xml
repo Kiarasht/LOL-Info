@@ -11,4 +11,8 @@
     <dimen name="rating">15dip</dimen>
     <dimen name="genre">13dip</dimen>
     <dimen name="year">12dip</dimen>
+
+    <dimen name="margin_standard">16dp</dimen>
+    <dimen name="flexible_space_image_height">240dp</dimen>
+    <dimen name="flexible_space_show_fab_offset">120dp</dimen>
 </resources>

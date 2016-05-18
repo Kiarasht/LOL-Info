@@ -1,6 +1,7 @@
 package com.restart.lolinfo;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -207,6 +208,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getApplicationContext(), String.valueOf(position), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(), Champion_Desc.class);
+                startActivity(intent);
             }
         });
 
