@@ -23,9 +23,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".Champion_Desc"
-            android:label="@string/Champ_Desc"/>
     </application>
 
 </manifest>

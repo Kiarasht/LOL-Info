@@ -11,7 +11,82 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true">
+        <!-- Thumbnail sum_1 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/sum_1"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_toLeftOf="@+id/item_1"
+            android:layout_toStartOf="@+id/item_1" />
+
+        <!-- Thumbnail 1 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/item_1"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_toLeftOf="@+id/item_2"
+            android:layout_toStartOf="@+id/item_2" />
+
+        <!-- Thumbnail 2 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/item_2"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_toLeftOf="@+id/item_3"
+            android:layout_toStartOf="@+id/item_3" />
+
+        <!-- Thumbnail 3 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/item_3"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true" />
+
+        <!-- Thumbnail sum_2 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/sum_2"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_below="@+id/item_3"
+            android:layout_toLeftOf="@+id/item_4"
+            android:layout_toStartOf="@+id/item_4" />
+
+        <!-- Thumbnail 4 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/item_4"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_below="@+id/item_3"
+            android:layout_toLeftOf="@+id/item_5"
+            android:layout_toStartOf="@+id/item_5" />
+
+        <!-- Thumbnail 5 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/item_5"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_below="@+id/item_3"
+            android:layout_toLeftOf="@+id/item_6"
+            android:layout_toStartOf="@+id/item_6" />
+
+        <!-- Thumbnail 6 -->
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/item_6"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/item_3" />
+    </RelativeLayout>
 
     <!-- Match Type -->
     <TextView
@@ -19,8 +94,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/thumbnail"
+        android:layout_toEndOf="@+id/thumbnail"
         android:layout_toRightOf="@+id/thumbnail"
-        android:textSize="@dimen/title"
+        android:textColor="@color/black"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <!-- Champion_Desc name -->
@@ -30,8 +107,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/queue"
         android:layout_marginTop="1dip"
+        android:layout_toEndOf="@+id/thumbnail"
         android:layout_toRightOf="@+id/thumbnail"
-        android:textSize="@dimen/rating" />
+        android:textSize="12sp" />
 
     <!-- Role & Lane -->
     <TextView
@@ -40,9 +118,10 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/champion"
         android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/thumbnail"
         android:layout_toRightOf="@+id/thumbnail"
         android:textColor="@color/genre"
-        android:textSize="@dimen/genre" />
+        android:textSize="12sp" />
 
     <!-- Time -->
     <TextView
@@ -50,8 +129,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:textColor="@color/year"
-        android:textSize="@dimen/year" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:textColor="@color/white"
+        android:textSize="12sp" />
 
 </RelativeLayout>

@@ -2,19 +2,12 @@ package com.restart.lolinfo.model;
 
 
 public class Match {
-    private String queue, thumbnailUrl, champion, lane_role;
+    private String queue, thumbnailUrl, champion, stats, spell1, spell2;
     private long time;
     private boolean win;
+    private int[] items;
 
     public Match() {
-    }
-
-    public Match(String queue, String thumbnailUrl, String champion, String genre, long time) {
-        this.queue = queue;
-        this.thumbnailUrl = thumbnailUrl;
-        this.time = time;
-        this.champion = champion;
-        this.lane_role = genre;
     }
 
     public String getQueue() {
@@ -49,12 +42,12 @@ public class Match {
         this.champion = champion;
     }
 
-    public String getLane_role() {
-        return lane_role;
+    public String getStats() {
+        return stats;
     }
 
-    public void setLane_role(String lane_role) {
-        this.lane_role = lane_role;
+    public void setStats(String lane_role) {
+        this.stats = lane_role;
     }
 
     public boolean getWin() {
@@ -63,5 +56,29 @@ public class Match {
 
     public void setWin(boolean win) {
         this.win = win;
+    }
+
+    public int[] getItems() {
+        return items;
+    }
+
+    public void setItems(int[] items) {
+        this.items = items;
+    }
+
+    public String getSpell1() {
+        return spell1;
+    }
+
+    public void setSpell1(String spell1) {
+        this.spell1 = spell1;
+    }
+
+    public String getSpell2() {
+        return spell2;
+    }
+
+    public void setSpell2(String spell2) {
+        this.spell2 = spell2;
     }
 }

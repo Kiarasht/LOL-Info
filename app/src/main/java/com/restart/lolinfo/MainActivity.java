@@ -1,7 +1,6 @@
 package com.restart.lolinfo;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -77,6 +76,8 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        navigationView.getMenu().getItem(0).setChecked(true);
+        navigationView.setItemIconTintList(null);
 
         account = getSharedPreferences("savefile", MODE_PRIVATE);
         summoner_id = account.getLong(getString(R.string.summoner_id), -1);
@@ -154,7 +155,6 @@ public class MainActivity extends AppCompatActivity
                     response = response.getJSONObject(name.toLowerCase());
                     String name = response.getString("name");
                     long id = response.getLong("id");
-                    Log.e(TAG, id + "");
                     int profile_icon = response.getInt("profileIconId");
                     long summoner_level = response.getLong("summonerLevel");
                     account.edit().putString(getString(R.string.summoner_name), name).apply();
@@ -208,8 +208,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getApplicationContext(), String.valueOf(position), Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(), Champion_Desc.class);
-                startActivity(intent);
+                //Intent intent = new Intent(getApplicationContext(), Champion_Desc.class);
+                //startActivity(intent);
             }
         });
 
@@ -226,7 +226,6 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG, response.toString());
                         hidePDialog();
 
                         try {
@@ -239,9 +238,54 @@ public class MainActivity extends AppCompatActivity
                                 Match match = new Match();
                                 match.setQueue(Convert.getGame(obj.getString("subType")));
                                 getChampion(obj.getInt("championId"), match);
+
+                                int spell1 = obj.getInt("spell1");
+                                int spell2 = obj.getInt("spell2");
+
+                                if (spell1 == 34 && spell2 == 33) {
+                                    match.setSpell1("3637");
+                                    match.setSpell2("3637");
+                                } else {
+                                    getSpell(obj.getInt("spell1"), match, 1);
+                                    getSpell(obj.getInt("spell2"), match, 2);
+                                }
+
                                 match.setTime(obj.getLong("createDate"));
                                 match.setWin(stats.getBoolean("win"));
 
+                                int kill;
+                                int death;
+                                int assist;
+
+                                try {
+                                    kill = stats.getInt("championsKilled");
+                                } catch (JSONException e) {
+                                    kill = 0;
+                                }
+                                try {
+                                    death = stats.getInt("numDeaths");
+                                } catch (JSONException e) {
+                                    death = 0;
+                                }
+                                try {
+                                    assist = stats.getInt("assists");
+                                } catch (JSONException e) {
+                                    assist = 0;
+                                }
+
+                                String score = kill + " / " + death + " / " + assist;
+
+                                int[] items = new int[7];
+                                for (int j = 0; j < 7; ++j) {
+                                    try {
+                                        items[j] = stats.getInt("item" + String.valueOf(j));
+                                    } catch (JSONException e) {
+                                        items[j] = 3637;
+                                    }
+                                }
+
+                                match.setStats(score);
+                                match.setItems(items);
                                 matchList.add(match);
                             }
 
@@ -275,13 +319,8 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG, response.toString());
-
                         try {
                             match.setChampion(response.getString("name"));
-                            String title = response.getString("title").substring(0, 1).toUpperCase()
-                                    + response.getString("title").substring(1);
-                            match.setLane_role(title);
                             String key = response.getString("key");
                             match.setThumbnailUrl("http://ddragon.leagueoflegends.com/cdn/6.9.1/img/champion/" +
                                     key +
@@ -289,6 +328,44 @@ public class MainActivity extends AppCompatActivity
                             adapter.notifyDataSetChanged();
                         } catch (Exception e) {
                             e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError e) {
+                e.printStackTrace();
+                int networkResponse = e.networkResponse.statusCode;
+
+                String reason = "Something went wrong. Error: " + networkResponse;
+
+                Toast.makeText(MainActivity.this, reason + ".", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        AppController.getInstance().addToRequestQueue(matchReq);
+    }
+
+    private void getSpell(int spell_id, final Match match, final int spell) {
+        String url = "https://global.api.pvp.net/api/lol/static-data/na/v1.2/summoner-spell/" +
+                spell_id +
+                "?api_key=cbc7f3e0-ba8d-4713-bf40-10f4dbdb476e";
+        Log.e(TAG, url);
+        JsonObjectRequest matchReq = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        if (spell == 1) {
+                            try {
+                                match.setSpell1(response.getString("key"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            try {
+                                match.setSpell2(response.getString("key"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -353,9 +430,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.action_refresh) {
+        if (id == R.id.action_refresh) {
             matchHistory(summoner_id, summoner_region, true);
         }
 
@@ -368,18 +443,21 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        switch (id) {
+            case R.id.nav_history:
+                break;
+            case R.id.nav_live:
+                break;
+            case R.id.nav_mastry:
+                break;
+            case R.id.nav_rank:
+                break;
+            case R.id.nav_setting:
+                break;
+            case R.id.nav_about:
+                break;
+            case R.id.nav_rate:
+                break;
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

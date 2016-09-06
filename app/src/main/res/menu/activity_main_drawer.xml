@@ -3,34 +3,33 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
+            android:id="@+id/nav_history"
             android:icon="@drawable/ic_history"
             android:title="History" />
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_history"
-            android:title="Gallery" />
+            android:id="@+id/nav_live"
+            android:icon="@drawable/ic_live"
+            android:title="Live Game" />
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_history"
-            android:title="Slideshow" />
+            android:id="@+id/nav_mastry"
+            android:icon="@drawable/ic_champion_mastry"
+            android:title="Mastery" />
         <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_history"
-            android:title="Tools" />
+            android:id="@+id/nav_rank"
+            android:icon="@drawable/ic_summoner_rank"
+            android:title="Ranked" />
+        <item
+            android:id="@+id/nav_setting"
+            android:icon="@drawable/ic_settings"
+            android:title="Settings" />
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_help"
+            android:title="About" />
+        <item
+            android:id="@+id/nav_rate"
+            android:icon="@drawable/ic_thumbs"
+            android:title="Rate Me" />
     </group>
-
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_history"
-                android:title="Share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_history"
-                android:title="Send" />
-        </menu>
-    </item>
 
 </menu>
